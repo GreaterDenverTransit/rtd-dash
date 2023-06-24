@@ -1,12 +1,8 @@
-# MBTA Covid Recovery Dashboard
+# RTD Ridership Dashboard
 
-[![pages-build-deployment](https://github.com/transitmatters/mbta-covid-recovery-dash/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/transitmatters/mbta-covid-recovery-dash/actions/workflows/pages/pages-build-deployment)
-<img width="1904" alt="Screen Shot 2021-08-12 at 3 05 02 PM" src="https://user-images.githubusercontent.com/2208769/129256786-5ac21cce-2d5a-42c3-823a-5533804c2abd.png">
+The RTD Ridership Dashboard is a project by [Greater Denver Transit](https://www.greaterdenvertransit.com/) to track changes in RTD service levels and ridership. It draws data from the following sources:
 
-The MBTA Covid Recovery Dashboard is a project by the [TransitMatters Labs](https://transitmatters.org/transitmatters-labs) team to track changes in MBTA service levels and ridership during the Covid-19 pandemic. It draws data from the following sources:
-
-- The [MBTA GTFS feed archive](https://cdn.mbta.com/archive/archived_feeds.txt)
-- Some [public data on ridership](https://massdot.app.box.com/s/21j0q5di9ewzl0abt6kdh5x8j8ok9964) updated regularly by [MassDOT OPMI](https://www.mass.gov/transportation-performance)
+- The [MobilityData RTD GTFS feed archive](https://transitfeeds.com/p/rtd-denver/188)
 
 The root of this repo is a Next.js webapp, but inside the `datagen/` directory is Python code to read and aggregate data from the sources mentioned above. That file updates `data.json`, which is bundled by Next.js into a static site that lives in the `docs/` directory. We host that static site on [recovery.transitmatters.org](https://recovery.transitmatters.org).
 
@@ -69,6 +65,6 @@ npm run update
 
 This is what we use to periodically update the production site.
 
-## Support TransitMatters
+## Support Greater Denver Transit
 
-If you've found this app helpful or interesting, please consider [donating](https://transitmatters.org/donate) to TransitMatters to help support our mission to provide data-driven advocacy for a more reliable, sustainable, and equitable transit system in Metropolitan Boston.
+If you've found this app helpful or interesting, please consider joining [Greater Denver Transit](https://www.greaterdenvertransit.com/) to help support our mission to advocate for an efficient, reliable, safe, accessible and inclusive public transit system which delivers on the region’s mobility needs.
