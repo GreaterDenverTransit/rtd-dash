@@ -1,6 +1,12 @@
 from typing import Tuple
 from datetime import date
+from config import ROUTE_IDS_RAIL
 
+def rtd_short_name(route_id):
+    short_name = route_id
+    if route_id in ROUTE_IDS_RAIL and len(route_id) == 4:
+        short_name = route_id[-1]
+    return short_name
 
 def index_by(items, key_getter):
     res = {}

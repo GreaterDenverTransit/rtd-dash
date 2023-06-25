@@ -13,7 +13,7 @@ class LocationType:
 
 class VehicleType:
     LIGHT_RAIL = "0"
-    SUBWAY = "1"
+    # SUBWAY = "1"
     COMMUTER_RAIL = "2"
     BUS = "3"
     FERRY = "4"
@@ -36,7 +36,6 @@ class Service(object):
     id: str
     days: List[str]
     description: str
-    schedule_name: str
     schedule_type: str
     schedule_typicality: int
     start_date: datetime.date
@@ -51,7 +50,6 @@ class Service(object):
 class Trip(object):
     id: str
     route_id: str
-    route_pattern_id: str
     shape_id: str
     shape: List[Tuple[float, float]]
     direction_id: int
@@ -76,14 +74,14 @@ class Direction(object):
 class StationStop(object):
     id: str
     name: str
-    municipality: str
+    # municipality: str
     location: Tuple[float, float]
     wheelchair_boarding: str
-    on_street: str
-    at_street: str
-    vehicle_type: str
+    # on_street: str
+    # at_street: str
+    # vehicle_type: str
     zone_id: str
-    level_id: str
+    # level_id: str
     location_type: str
 
 
@@ -141,18 +139,6 @@ class StopTime(object):
     def __lt__(self, other):
         return self.time < other.time
 
-
-@dataclass
-class Transfer(object):
-    from_stop: Stop
-    to_stop: Stop
-    min_walk_time: int
-    min_wheelchair_time: int
-    min_transfer_time: int
-    suggested_buffer_time: int
-    wheelchair_transfer: str
-
-
 @dataclass
 class Network(object):
     stations_by_id: Dict[str, Station]
@@ -160,7 +146,6 @@ class Network(object):
     shapes_by_id: Dict[str, List[Tuple[float, float]]]
     routes_by_id: Dict[str, "Route"]
     services_by_id: Dict[str, "Service"]
-    lines_by_id: Dict[str, "Line"]
 
     def add_station(self, station: Station):
         existing_station_by_id = self.stations_by_id.get(station.id)
@@ -188,25 +173,7 @@ class RoutePattern(object):
 
 
 @dataclass
-class Line(object):
-    id: str
-    short_name: str
-    long_name: str
-    desc: str
-    url: str
-    color: str
-    text_color: str
-    sort_order: str
-
-
-@dataclass
 class Route(object):
     id: str
     long_name: str
     representative_trip: Trip = None
-    line: Line = None
-    route_patterns: List[RoutePattern] = field(default_factory=list)
-
-    def add_route_pattern(self, pattern: RoutePattern):
-        self.route_patterns.append(pattern)
-        pattern.route = self

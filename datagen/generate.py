@@ -2,35 +2,34 @@ from typing import List, Tuple, Dict
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 import json
+import objgraph
 
 from config import (
-    OUTPUT_FILE,
-    PRE_COVID_DATE,
-    EARLIEST_DATE,
-    RIDERSHIP_TARGET_DATE,
+    # RIDERSHIP_TARGET_DATE,
     CUTOFF_DATE,
-    IGNORE_LINE_IDS,
+    EARLIEST_DATE,
     FILL_DATE_RANGES,
     IGNORE_DATE_RANGES,
+    IGNORE_ROUTE_ID,
+    OUTPUT_FILE,
+    PRE_COVID_DATE,
+    ROUTE_IDS_RAIL,
     TIME_ZONE,
 )
 
 from gtfs.archive import load_feeds_and_service_levels_from_archive, GtfsFeed
 from gtfs.time import date_from_string
-from gtfs.util import bucket_by, get_date_ranges_of_same_value, date_range_contains
-from ridership.source import get_latest_ridership_source
+from gtfs.util import bucket_by, get_date_ranges_of_same_value, date_range_contains, rtd_short_name
+# from ridership.source import get_latest_ridership_source
 from ridership.timeseries import (
-    get_ridership_time_series_by_adhoc_label,
+    # get_ridership_time_series_by_adhoc_label,
     map_route_id_to_adhoc_label,
 )
 
 
 @dataclass
 class ServiceLevelsEntry:
-    line_id: str
-    line_short_name: str
-    line_long_name: str
-    route_ids: List[str]
+    route_id: str
     service_levels: List[int]
     exception_dates: List[date]
     start_date: date
@@ -38,15 +37,9 @@ class ServiceLevelsEntry:
     feed: GtfsFeed
 
 
-def get_line_kind(route_ids: List[str], line_id: str):
-    if line_id.startswith("line-Boat"):
-        return "boat"
-    if any((r for r in route_ids if r.lower().startswith("cr-"))):
-        return "regional-rail"
-    if line_id.startswith("line-SL"):
-        return "silver"
-    if line_id in ("line-Red", "line-Orange", "line-Blue", "line-Green"):
-        return line_id.split("-")[1].lower()
+def get_route_kind(route_id: str):
+    if route_id in ROUTE_IDS_RAIL:
+        return route_id
     return "bus"
 
 
@@ -75,25 +68,19 @@ def get_weekday_service_levels_history(
     return histories
 
 
-def get_service_level_entries_and_line_ids(
+def get_service_level_entries_and_route_ids(
     feeds_and_service_levels: List[Tuple[GtfsFeed, Dict]]
 ):
     entries = []
-    all_line_ids = set()
+    all_route_ids = set()
     for feed, service_levels in feeds_and_service_levels:
-        for line_id, line_entry in service_levels.items():
-            all_line_ids.add(line_id)
+        for route_id, line_entry in service_levels.items():
+            all_route_ids.add(route_id)
             service_level_history = line_entry["history"]
-            line_long_name = line_entry["longName"]
-            line_short_name = line_entry["shortName"]
-            route_ids = line_entry["routeIds"]
             exception_dates = list(map(date_from_string, line_entry["exceptionDates"]))
             for service_levels in service_level_history:
                 entry = ServiceLevelsEntry(
-                    line_id=line_id,
-                    line_short_name=line_short_name,
-                    line_long_name=line_long_name,
-                    route_ids=route_ids,
+                    route_id=route_id,
                     service_levels=service_levels["serviceLevels"],
                     start_date=date_from_string(service_levels["startDate"]),
                     end_date=date_from_string(service_levels["endDate"]),
@@ -101,7 +88,7 @@ def get_service_level_entries_and_line_ids(
                     feed=feed,
                 )
                 entries.append(entry)
-    return bucket_by(entries, lambda e: e.line_id), all_line_ids
+    return bucket_by(entries, lambda e: e.route_id), all_route_ids
 
 
 def get_service_levels_entry_for_date(entries: List[ServiceLevelsEntry], date: date):
@@ -229,30 +216,30 @@ def summarize_service(numerator_regime_dict, denominator_regime_dict):
     return numerator_total_trips, total_trips_fraction
 
 
-def get_merged_ridership_time_series(
-    route_ids: List[str],
-    ridership_time_series_by_label: Dict[str, List],
-):
-    labels = set((map_route_id_to_adhoc_label(route_id) for route_id in route_ids))
-    matching_time_series = [
-        ridership_time_series_by_label.get(label)
-        for label in labels
-        if label in ridership_time_series_by_label
-    ]
-    if len(matching_time_series) == 0:
-        return None
-    merged_time_series = [0] * len(matching_time_series[0])
-    for ts in matching_time_series:
-        for idx, value in enumerate(ts):
-            merged_time_series[idx] += value
-    return merged_time_series
+# def get_merged_ridership_time_series(
+#     route_ids: List[str],
+#     ridership_time_series_by_label: Dict[str, List],
+# ):
+#     labels = set((map_route_id_to_adhoc_label(route_id) for route_id in route_ids))
+#     matching_time_series = [
+#         ridership_time_series_by_label.get(label)
+#         for label in labels
+#         if label in ridership_time_series_by_label
+#     ]
+#     if len(matching_time_series) == 0:
+#         return None
+#     merged_time_series = [0] * len(matching_time_series[0])
+#     for ts in matching_time_series:
+#         for idx, value in enumerate(ts):
+#             merged_time_series[idx] += value
+#     return merged_time_series
 
 
-def get_ridership_percentage(total_ridership_time_series):
-    ridership_percentage = round(
-        total_ridership_time_series[-1] / total_ridership_time_series[0], 2
-    )
-    return ridership_percentage
+# def get_ridership_percentage(total_ridership_time_series):
+#     ridership_percentage = round(
+#         total_ridership_time_series[-1] / total_ridership_time_series[0], 2
+#     )
+#     return ridership_percentage
 
 
 def get_service_percentage(total_service_time_series):
@@ -273,7 +260,7 @@ def condensed_time_series(total_time_series):
 
 
 def generate_total_data(
-    ridership_time_series_list: List[List[float]],
+    # ridership_time_series_list: List[List[float]],
     service_time_series_list: List[List[float]],
     combined_total_trips: int,
     total_cancelled_routes: int,
@@ -281,24 +268,24 @@ def generate_total_data(
     total_increased_serv_routes: int,
     start_date: date,
 ):
-    total_ridership_time_series = [
-        sum(entries_for_day) for entries_for_day in zip(*ridership_time_series_list)
-    ]
-    condensed_ridership_series = condensed_time_series(total_ridership_time_series)
+    # total_ridership_time_series = [
+    #     sum(entries_for_day) for entries_for_day in zip(*ridership_time_series_list)
+    # ]
+    # condensed_ridership_series = condensed_time_series(total_ridership_time_series)
     total_service_time_series = [
         sum(entries_for_day) for entries_for_day in zip(*service_time_series_list)
     ]
     condensed_service_series = condensed_time_series(total_service_time_series)
-    total_ridership_percentage = get_ridership_percentage(total_ridership_time_series)
+    # total_ridership_percentage = get_ridership_percentage(total_ridership_time_series)
     total_service_percentage = get_service_percentage(total_service_time_series)
-    total_passengers = total_ridership_time_series[-1]
+    # total_passengers = total_ridership_time_series[-1]
     end_date = start_date + timedelta(days=(len(total_service_time_series) - 1))
     return {
-        "totalRidershipHistory": condensed_ridership_series,
+        "totalRidershipHistory": [], #condensed_ridership_series,
         "totalServiceHistory": condensed_service_series,
-        "totalRidershipPercentage": total_ridership_percentage,
+        "totalRidershipPercentage": 1, # total_ridership_percentage,
         "totalServicePercentage": total_service_percentage,
-        "totalPassengers": total_passengers,
+        "totalPassengers": 420, #total_passengers
         "totalTrips": combined_total_trips,
         "totalRoutesCancelled": total_cancelled_routes,
         "totalReducedService": total_reduced_serv_routes,
@@ -310,41 +297,40 @@ def generate_total_data(
 
 def generate_data_file():
     start_date = PRE_COVID_DATE
-    today = CUTOFF_DATE or RIDERSHIP_TARGET_DATE or datetime.now(TIME_ZONE).date()
-    ridership_source = get_latest_ridership_source()
-    data_by_line_id = {}
+    today = CUTOFF_DATE or datetime.now(TIME_ZONE).date()
+    # ridership_source = get_latest_ridership_source()
+    data_by_route_id = {}
     feeds_and_service_levels = load_feeds_and_service_levels_from_archive()
-    entries, line_ids = get_service_level_entries_and_line_ids(feeds_and_service_levels)
-    ridership_time_series_by_label = get_ridership_time_series_by_adhoc_label(
-        ridership_source,
-        start_date,
-        today,
-    )
-    ridership_time_series_list = []
+    entries, route_ids = get_service_level_entries_and_route_ids(feeds_and_service_levels)
+    # ridership_time_series_by_label = get_ridership_time_series_by_adhoc_label(
+    #     ridership_source,
+    #     start_date,
+    #     today,
+    # )
+    # ridership_time_series_list = []
     service_time_series_list = []
     combined_total_trips = 0
     total_reduced_serv_routes = 0
     total_increased_serv_routes = 0
     total_cancelled_routes = 0
-    for line_id in line_ids:
-        if line_id in IGNORE_LINE_IDS:
+    for route_id in route_ids:
+        if IGNORE_ROUTE_ID(route_id):
             continue
-        entries_for_line_id = entries[line_id]
-        exemplar_entry = entries_for_line_id[-1]
-        ridership_time_series = get_merged_ridership_time_series(
-            exemplar_entry.route_ids,
-            ridership_time_series_by_label,
-        )
+        entries_for_route_id = entries[route_id]
+        # ridership_time_series = get_merged_ridership_time_series(
+        #     exemplar_entry.route_ids,
+        #     ridership_time_series_by_label,
+        # )
         service_time_series = get_service_level_history(
-            entries_for_line_id,
+            entries_for_route_id,
             start_date,
             today,
         )
         baseline_service_regime = get_service_regime_dict(
-            entries_for_line_id,
+            entries_for_route_id,
             start_date,
         )
-        current_service_regime = get_service_regime_dict(entries_for_line_id, today)
+        current_service_regime = get_service_regime_dict(entries_for_route_id, today)
         day_kinds = ("weekday", "saturday", "sunday")
 
         try:
@@ -370,18 +356,25 @@ def generate_data_file():
             baseline_service_regime,
         )
 
-        if ridership_time_series is not None and service_time_series is not None:
-            ridership_time_series_list.append(ridership_time_series)
+        # if ridership_time_series is not None:
+        #     ridership_time_series_list.append(ridership_time_series)
+        if service_time_series is not None:
             service_time_series_list.append(service_time_series)
+
         combined_total_trips += total_trips
-        data_by_line_id[line_id] = {
-            "id": line_id,
-            "shortName": exemplar_entry.line_short_name,
-            "longName": exemplar_entry.line_long_name,
-            "routeIds": exemplar_entry.route_ids,
+
+        short_name = route_id
+        if route_id in ROUTE_IDS_RAIL and len(route_id) == 4:
+            short_name = route_id[-1]
+
+        data_by_route_id[route_id] = {
+            "id": route_id,
+            "shortName": rtd_short_name(route_id),
+            "longName": route_id,
+            "routeId": route_id,
             "startDate": start_date.strftime("%Y-%m-%d"),
-            "lineKind": get_line_kind(exemplar_entry.route_ids, line_id),
-            "ridershipHistory": ridership_time_series,
+            "lineKind": get_route_kind(route_id),
+            # "ridershipHistory": ridership_time_series,
             "serviceHistory": service_time_series,
             "serviceFraction": service_fraction,
             "totalTrips": total_trips,
@@ -392,7 +385,7 @@ def generate_data_file():
         }
 
     total_data = generate_total_data(
-        ridership_time_series_list,
+        # ridership_time_series_list,
         service_time_series_list,
         combined_total_trips,
         total_cancelled_routes,
@@ -406,7 +399,7 @@ def generate_data_file():
             json.dumps(
                 {
                     "summaryData": total_data,
-                    "lineData": data_by_line_id,
+                    "lineData": data_by_route_id,
                 }
             )
         )

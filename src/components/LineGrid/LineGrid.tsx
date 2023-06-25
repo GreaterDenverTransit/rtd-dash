@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import classNames from "classnames";
 
-import { LineCard, SystemCard, TopLine, TopLineMobile } from "components";
+import { LineCard } from "components";
 import { LineData, SummaryData } from "types";
 import Image from "next/image";
 
@@ -16,7 +16,7 @@ type Props = {
     filter?: (r: LineData) => boolean;
 };
 
-type LineKindOption = "all" | "bus" | "rapid-transit" | "regional-rail" | "boat";
+type LineKindOption = "all" | "bus" | "rail";
 type DisplayOption = "grid" | "rows";
 
 const pagination = 12;
@@ -55,20 +55,10 @@ const matchesLineKindOption = (lineData: LineData, option: LineKindOption) => {
     const { lineKind } = lineData;
     if (option === "all") {
         return true;
-    }
-    if (option === "regional-rail" || option === "bus" || option === "boat") {
+    } else if (option === "bus") {
         return lineKind === option;
-    }
-    return lineKind !== "regional-rail" && lineKind !== "bus" && lineKind !== "boat"; // Sorry
-};
-
-const isRidershipSort = (sort: "" | Sort) => {
-    return (
-        sort === "lowestRidershipFraction" ||
-        sort === "highestRidershipFraction" ||
-        sort === "lowestTotalRidership" ||
-        sort === "highestTotalRidership"
-    );
+    } else if (option === "rail" && lineKind !== "bus") return true;
+    return false;
 };
 
 const LineGrid = (props: Props) => {
@@ -108,25 +98,16 @@ const LineGrid = (props: Props) => {
                     const nextKindOption = e.target.value as LineKindOption;
                     setKindOption(nextKindOption);
                     setLimit(pagination);
-                    if (
-                        (nextKindOption === "regional-rail" || nextKindOption === "boat") &&
-                        isRidershipSort(sort)
-                    ) {
-                        setSort("highestServiceFraction");
-                    }
                 }}
             >
                 <option value="all">All lines</option>
                 <option value="bus">Bus</option>
-                <option value="rapid-transit">Rapid transit</option>
-                <option value="regional-rail">Commuter rail</option>
-                <option value="boat">Ferry</option>
+                <option value="rail">Rail</option>
             </select>
         );
     };
 
     const renderSortDropdown = () => {
-        const disableRidership = kindOption === "regional-rail";
         return (
             <select
                 className={classNames(styles.select, sort === "kind" && "default")}
@@ -144,14 +125,10 @@ const LineGrid = (props: Props) => {
                 <option value="lowestServiceFraction">Most service cut</option>
                 <option value="lowestTotalTrips">Least service</option>
                 <option value="highestTotalTrips">Most service</option>
-                {!disableRidership && (
-                    <>
-                        <option value="lowestRidershipFraction">Least ridership retained</option>
-                        <option value="highestRidershipFraction">Most ridership retained</option>
-                        <option value="lowestTotalRidership">Least ridership</option>
-                        <option value="highestTotalRidership">Most ridership</option>
-                    </>
-                )}
+                <option value="lowestRidershipFraction">Least ridership retained</option>
+                <option value="highestRidershipFraction">Most ridership retained</option>
+                <option value="lowestTotalRidership">Least ridership</option>
+                <option value="highestTotalRidership">Most ridership</option>
             </select>
         );
     };
@@ -172,23 +149,21 @@ const LineGrid = (props: Props) => {
     return (
         <>
             <div className={styles.header}>
-                <a href="https://transitmatters.org">
+                <a href="https://www.greaterdenvertransit.com/">
                     <Image
-                        src="/logo.svg"
+                        src="/gdt.png"
                         className={styles.logo}
                         height={20}
-                        width={197}
-                        alt={"Transitmatters Logo"}
+                        width={20}
+                        alt={"Greater Denver Transit Logo"}
                     />
                 </a>
-                <h1>MBTA Covid Recovery Dashboard</h1>
+                <h1>RTD Service & Ridership Tracker</h1>
                 <div className={styles.links}>
                     <span>Data through {summaryData.endDate}</span>
-                    <a href="https://transitmatters.org/transitmatters-labs">TransitMatters Labs</a>
-                    <a href="https://github.com/transitmatters/mbta-covid-recovery-dash">
-                        Source code
-                    </a>
-                    <a href="mailto:labs@transitmatters.org?subject=Covid Dashboard Feedback">
+                    <a href="https://www.greaterdenvertransit.com/">Greater Denver Transit</a>
+                    <a href="https://github.com/mathcolo/rtd-dash">Source code</a>
+                    <a href="mailto:greaterdenvertransit@gmail.com?subject=Dashboard Feedback">
                         Send feedback
                     </a>
                 </div>
@@ -207,9 +182,6 @@ const LineGrid = (props: Props) => {
                 {renderLineKindDropdown()}
                 {renderSortDropdown()}
             </div>
-            <TopLine summaryData={summaryData} />
-            <TopLineMobile summaryData={summaryData} />
-            {kindOption === "all" && <SystemCard summaryData={summaryData} />}
             <div className={classNames(styles.lineGrid, display)}>
                 {shownItems.map((item) => (
                     <LineCard lineData={item} key={item.id} />

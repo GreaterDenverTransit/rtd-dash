@@ -1,19 +1,26 @@
 import { LineData } from "types";
 
-const colorLines = ["red", "green", "blue", "orange", "silver"];
-const keyBusRoutes = new Set(
-    [1, 15, 22, 23, 28, 32, 39, 57, 66, 71, 73, 77, 111, 116, 117].map(String)
-);
+const colorLines = [
+    "A",
+    "113B",
+    "C",
+    "101D",
+    "101E",
+    "F",
+    "113G",
+    "101H",
+    "109L",
+    "117N",
+    "107R",
+    "120W",
+];
 
 const kind = (line: LineData) => {
-    if (colorLines.includes(line.lineKind)) {
-        return line.lineKind === "silver" ? 1 : 0;
-    } else if (line.routeIds.some((rid) => keyBusRoutes.has(rid))) {
-        return 100 + parseInt(line.routeIds[0]);
-    } else if (line.lineKind === "regional-rail") {
-        return 200;
+    const i = colorLines.indexOf(line.lineKind);
+    if (i !== -1) {
+        return i;
     }
-    const res = 300 + Math.min(...line.routeIds.map((x) => parseInt(x)));
+    const res = 300 + parseInt(line.routeId);
     if (Number.isNaN(res)) {
         return Infinity;
     }

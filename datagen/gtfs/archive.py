@@ -1,16 +1,12 @@
-from csv import DictReader
 from dataclasses import dataclass
 from datetime import datetime, date
 from functools import cached_property
-from os import path, mkdir
+from os import listdir, path, mkdir
 from zipfile import BadZipFile, ZipFile
 import pickle
 import json
 
-import requests
-from tqdm import tqdm
-
-from config import GTFS_ARCHIVE_URL, GTFS_DATA_PATH, EARLIEST_DATE
+from config import GTFS_DATA_PATH, EARLIEST_DATE, GTFS_BUNDLE_DIR, SKIP_BUNDLES
 from gtfs.loader import GtfsLoader
 from gtfs.network import build_network_from_gtfs
 from gtfs.trips import get_trip_summaries_for_network
@@ -22,7 +18,7 @@ from gtfs.time import date_from_string, date_to_string
 class GtfsFeed:
     start_date: date
     end_date: date
-    url: str
+    filepath: str
     version: str
 
     @cached_property
@@ -52,39 +48,21 @@ class GtfsFeed:
     def loader(self):
         return GtfsLoader(root=self.gtfs_subdir_path)
 
-
-def download_gtfs_zip(feed: GtfsFeed):
-    target_file = feed.gtfs_zip_path
-    if path.exists(target_file):
-        return
-    if not path.exists(feed.subdirectory):
-        mkdir(feed.subdirectory)
-    response = requests.get(feed.url, stream=True)
-    total_size_in_bytes = int(response.headers.get("content-length", 0))
-    block_size = 1024
-    progress_bar = tqdm(
-        total=total_size_in_bytes, unit="iB", unit_scale=True, desc=f"Downloading {feed.url}"
-    )
-    with open(target_file, "wb") as file:
-        for data in response.iter_content(block_size):
-            progress_bar.update(len(data))
-            file.write(data)
-    progress_bar.close()
-
-
 def extract_gtfs_zip(feed: GtfsFeed):
     if path.exists(feed.gtfs_subdir_path):
         return
-    download_gtfs_zip(feed)
-    print(f"Extracting {feed.url} to {feed.gtfs_subdir_path}")
+    # download_gtfs_zip(feed)
+    print(f"Extracting {feed.filepath} to {feed.gtfs_subdir_path}")
     try:
-        zf = ZipFile(feed.gtfs_zip_path)
+        zf = ZipFile(feed.filepath)
         zf.extractall(feed.gtfs_subdir_path)
     except BadZipFile:
         print(feed.gtfs_zip_path)
 
+RUNS = 0
 
 def get_trip_summaries(feed: GtfsFeed):
+    global RUNS
     extract_gtfs_zip(feed)
     pickle_path = feed.trip_summaries_pickle_path
     if path.exists(pickle_path):
@@ -94,6 +72,9 @@ def get_trip_summaries(feed: GtfsFeed):
             except Exception:
                 print("Error loading pickled trip summaries")
     print("Creating network from scratch...")
+    RUNS += 1
+    if RUNS > 8:
+        exit(137)
     network = build_network_from_gtfs(feed.loader)
     trip_summaries = get_trip_summaries_for_network(network)
     with open(pickle_path, "wb") as file:
@@ -104,7 +85,7 @@ def get_trip_summaries(feed: GtfsFeed):
 def get_service_levels_json(feed: GtfsFeed):
     target_path = feed.service_levels_json_path
     if not path.exists(target_path):
-        print(f"Generating service_levels.json for {feed.url}")
+        print(f"Generating service_levels.json for {feed.filepath}")
         trip_summaries = get_trip_summaries(feed)
         service_levels_json = compute_service_levels_json(trip_summaries)
         with open(target_path, "w") as file:
@@ -115,17 +96,27 @@ def get_service_levels_json(feed: GtfsFeed):
 
 def load_feeds_from_archive(load_start_date: date):
     feeds = []
-    req = requests.get(GTFS_ARCHIVE_URL)
-    lines = req.text.splitlines()
-    reader = DictReader(lines, delimiter=",")
-    for entry in reader:
-        start_date = date_from_string(entry["feed_start_date"])
-        end_date = date_from_string(entry["feed_end_date"])
-        version = entry["feed_version"]
-        url = entry["archive_url"]
+    bundles = list(filter(lambda f: ".zip" in f, sorted(listdir(GTFS_BUNDLE_DIR))))
+    for i in range(0, len(bundles)):
+        bundle = bundles[i]
+
+        if bundle in SKIP_BUNDLES:
+            continue
+
+        next = None
+        if i+1 < len(bundles):
+            next = bundles[i+1]
+
+        start_date = date_from_string(bundle[0:8])
+        end_date = date_from_string(next[0:8]) if next else datetime.now().date().strftime("%Y%m%d")
         if start_date < load_start_date:
             continue
-        gtfs_feed = GtfsFeed(start_date=start_date, end_date=end_date, version=version, url=url)
+        gtfs_feed = GtfsFeed(
+            start_date=start_date,
+            end_date=end_date,
+            version=bundle[0:8],
+            filepath=path.join(GTFS_BUNDLE_DIR, bundle)
+        )
         feeds.append(gtfs_feed)
     return feeds
 

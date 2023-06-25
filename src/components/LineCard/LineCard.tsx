@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import classNames from "classnames";
-import { TiCancel, TiTicket } from "react-icons/ti";
+import { TiCancel } from "react-icons/ti";
 
 import { LineData, ServiceDay } from "types";
 import { CardFrame, TabPicker } from "components";
@@ -21,8 +21,6 @@ const serviceDayItems = [
     { value: "sunday", label: "Sunday" },
 ];
 
-const hasFreeFarePilot = (routeShortName: string) => ["23", "28", "29"].includes(routeShortName);
-
 const getHighestTphValue = (lineData: LineData) => {
     let max = 0;
     Object.entries(lineData.serviceRegimes).forEach(([key, regime]) => {
@@ -36,24 +34,6 @@ const getHighestTphValue = (lineData: LineData) => {
     });
     return max;
 };
-
-const regionalRailCaveats = (
-    <details>
-        <summary>Caveats on Commuter Rail data</summary>
-        <div className={styles.detailsExpanded}>
-            The MBTA doesn't provide us daily Commuter Rail ridership from before June 2020. We
-            estimate a baseline (100%) value for February 2020 based on{" "}
-            <a
-                href="https://mbta-massdot.opendata.arcgis.com/datasets/MassDOT::mbta-commuter-rail-ridership-by-trip-season-route-line-and-stop/explore"
-                target="_blank"
-                rel="noreferrer"
-            >
-                2018 per-line ridership values
-            </a>
-            .
-        </div>
-    </details>
-);
 
 const LineCard = (props: Props) => {
     const { lineData } = props;
@@ -88,28 +68,11 @@ const LineCard = (props: Props) => {
     };
 
     const renderDetails = () => {
-        if (lineData.lineKind === "regional-rail") {
-            return regionalRailCaveats;
-        }
         return null;
     };
 
     const renderStatusBadge = () => {
         const { current, baseline } = serviceRegimes;
-        if (hasFreeFarePilot(shortName)) {
-            return (
-                <div className={classNames(styles.statusBadge, "good")}>
-                    <TiTicket size={20} />
-                    <a
-                        href="https://www.mbta.com/projects/fare-free-bus-pilot-route-28"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Free Fare Pilot
-                    </a>
-                </div>
-            );
-        }
         if (current.weekday.totalTrips === 0) {
             return (
                 <div className={classNames(styles.statusBadge, "bad")}>

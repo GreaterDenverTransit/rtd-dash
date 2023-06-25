@@ -1,9 +1,9 @@
-from typing import List, Dict
+from typing import List
 from datetime import date, timedelta
 
 from gtfs.models import Service, ServiceExceptionType
 from gtfs.trips import TripSummary
-from gtfs.util import bucket_by, get_date_ranges_of_same_value
+from gtfs.util import bucket_by, get_date_ranges_of_same_value, rtd_short_name
 from gtfs.time import date_to_string, DAYS_OF_WEEK
 
 
@@ -46,11 +46,13 @@ def bucket_trips_by_hour(trips: List[TripSummary]):
     return by_time_of_day
 
 
-def summarize_trips_by_date(line_id: str, trips: List[TripSummary]):
+def summarize_trips_by_date(trips: List[TripSummary]):
     summary_by_date = {}
     services = set((t.service for t in trips))
+
     valid_route_ids = set((t.route_id for t in trips if count_route_id(t.route_id)))
-    exemplar_trip = trips[-1]
+    route_id = list(valid_route_ids)[0]
+
     earliest_service_date = min((s.start_date for s in services))
     latest_service_date = max((s.end_date for s in services))
     date = earliest_service_date
@@ -73,17 +75,16 @@ def summarize_trips_by_date(line_id: str, trips: List[TripSummary]):
         }
         reduced_summary.append(summary_dict)
     return {
-        "routeIds": list(valid_route_ids),
-        "shortName": exemplar_trip.line.short_name,
-        "longName": exemplar_trip.line.long_name,
+        "routeId": route_id,
+        "shortName": rtd_short_name(route_id),
+        "longName": route_id,
         "exceptionDates": get_exception_date_strings_for_services(services),
         "history": reduced_summary,
     }
 
 
 def compute_service_levels_json(trips: List[TripSummary]):
-    trips_by_line_id = bucket_by(trips, lambda t: t.line.id)
+    trips_by_route_id = bucket_by(trips, lambda t: t.route_id)
     return {
-        line_id: summarize_trips_by_date(line_id, trips_for_line_id)
-        for line_id, trips_for_line_id in trips_by_line_id.items()
+        route_id: summarize_trips_by_date(trips) for route_id, trips in trips_by_route_id.items()
     }

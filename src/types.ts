@@ -1,14 +1,19 @@
 export type Time = number;
 
 export type LineKind =
-    | "red"
-    | "green"
-    | "orange"
-    | "blue"
-    | "silver"
-    | "regional-rail"
-    | "bus"
-    | "boat";
+    | "A"
+    | "113B"
+    | "C"
+    | "101D"
+    | "101E"
+    | "F"
+    | "113G"
+    | "101H"
+    | "109L"
+    | "117N"
+    | "107R"
+    | "120W"
+    | "bus";
 
 export type ServiceDay = "weekday" | "saturday" | "sunday";
 export type ServiceRegime = "baseline" | "current";
@@ -27,7 +32,7 @@ export type LineData = {
     longName: string;
     totalTrips: number;
     serviceFraction: number;
-    routeIds: string[];
+    routeId: string;
     ridershipHistory: null | number[];
     serviceHistory: number[];
     lineKind: LineKind;

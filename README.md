@@ -1,6 +1,6 @@
-# RTD Ridership Dashboard
+# RTD Service & Ridership Tracker
 
-The RTD Ridership Dashboard is a project by [Greater Denver Transit](https://www.greaterdenvertransit.com/) to track changes in RTD service levels and ridership. It draws data from the following sources:
+The RTD Service & Ridership Tracker is a project by [Greater Denver Transit](https://www.greaterdenvertransit.com/) to track changes in RTD service levels and ridership. It draws data from the following sources:
 
 - The [MobilityData RTD GTFS feed archive](https://transitfeeds.com/p/rtd-denver/188)
 

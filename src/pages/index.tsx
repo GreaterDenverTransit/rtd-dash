@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import React from "react";
 import Head from "next/head";
-import Script from "next/script";
 
 import { LineGrid } from "components";
 import { LineData } from "types";
@@ -32,19 +31,12 @@ const App = (props: Props) => {
     return (
         <>
             <Head>
-                <title>MBTA Covid Recovery Dashboard</title>
-                <meta name="author" content="TransitMatters" />
-                <meta
-                    name="description"
-                    content="Data on MBTA ridership and service levels throughout the COVID-19 pandemic"
-                />
+                <title>RTD Service Dashboard</title>
+                <meta name="author" content="Greater Denver Transit" />
+                <meta name="description" content="Data on RTD ridership and service levels" />
                 <link rel="icon" type="image/png" href="./favicon.png" />
             </Head>
             <LineGrid {...data} />
-            <Script
-                data-goatcounter="https://transitmatters-crd.goatcounter.com/count"
-                src="//gc.zgo.at/count.js"
-            />
         </>
     );
 };

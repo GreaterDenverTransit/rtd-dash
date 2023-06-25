@@ -3,8 +3,8 @@ from datetime import date, datetime, timedelta
 from dataclasses import dataclass
 from math import isnan
 
-from ridership.source import RidershipSource
-from ridership.process import get_ridership_json
+# from ridership.source import RidershipSource
+# from ridership.process import get_ridership_json
 
 
 @dataclass
@@ -53,17 +53,17 @@ def create_time_series_from_entries(
     return series
 
 
-def get_ridership_time_series_by_adhoc_label(
-    source: RidershipSource,
-    start_date: date,
-    end_date: date,
-):
-    res = {}
-    ridership_dict = get_ridership_json(source)
-    for label, entries_json in ridership_dict.items():
-        entries = [create_ridership_entry_from_dict(e) for e in entries_json]
-        res[label] = create_time_series_from_entries(entries, start_date, end_date)
-    return res
+# def get_ridership_time_series_by_adhoc_label(
+#     source: RidershipSource,
+#     start_date: date,
+#     end_date: date,
+# ):
+#     res = {}
+#     ridership_dict = get_ridership_json(source)
+#     for label, entries_json in ridership_dict.items():
+#         entries = [create_ridership_entry_from_dict(e) for e in entries_json]
+#         res[label] = create_time_series_from_entries(entries, start_date, end_date)
+#     return res
 
 
 _adhoc_labels_map = {

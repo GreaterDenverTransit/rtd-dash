@@ -5,13 +5,10 @@ from gtfs.models import (
     Stop,
     LocationType,
     Network,
-    Transfer,
     Trip,
-    Line,
     Service,
     ServiceExceptionDate,
     Route,
-    RoutePattern,
 )
 from gtfs.time import time_from_string, date_from_string, DAYS_OF_WEEK
 from gtfs.util import index_by, bucket_by
@@ -34,24 +31,6 @@ def get_shapes_by_id(shapes):
     return res
 
 
-def get_lines_by_id(line_dicts):
-    res = {}
-    for line_dict in line_dicts:
-        line_id = line_dict["line_id"]
-        line = Line(
-            id=line_id,
-            short_name=line_dict["line_short_name"],
-            long_name=line_dict["line_long_name"],
-            desc=line_dict["line_desc"],
-            url=line_dict["line_url"],
-            color=line_dict["line_color"],
-            text_color=line_dict["line_text_color"],
-            sort_order=line_dict["line_sort_order"],
-        )
-        res[line_id] = line
-    return res
-
-
 def get_service_exception_dates_for_service_id(service_id, calendar_date_dicts):
     dates = []
     for date_dict in calendar_date_dicts:
@@ -67,20 +46,18 @@ def get_service_exception_dates_for_service_id(service_id, calendar_date_dicts):
     return dates
 
 
-def link_services(calendar_dicts, calendar_attribute_dicts, calendar_date_dicts):
+def link_services(calendar_dicts, calendar_date_dicts):
     services = []
-    calendar_attributes_by_id = index_by(calendar_attribute_dicts, "service_id")
     for calendar_dict in calendar_dicts:
         service_id = calendar_dict["service_id"]
-        attribute_dict = calendar_attributes_by_id[service_id]
         services.append(
             Service(
                 id=service_id,
                 days=[day for day in DAYS_OF_WEEK if calendar_dict[day] == "1"],
-                description=attribute_dict["service_description"],
-                schedule_name=attribute_dict["service_schedule_name"],
-                schedule_type=attribute_dict["service_schedule_type"],
-                schedule_typicality=int(attribute_dict["service_schedule_typicality"]),
+                description="PRESTON_DESCRIPTION",
+                # schedule_name=attribute_dict["service_schedule_name"],
+                schedule_type="PRESTON_SCHEDULE_TYPE",
+                schedule_typicality=0,
                 start_date=date_from_string(calendar_dict["start_date"]),
                 end_date=date_from_string(calendar_dict["end_date"]),
                 exception_dates=get_service_exception_dates_for_service_id(
@@ -102,14 +79,9 @@ def get_station_stop_args_from_dict(stop_dict):
     return {
         "id": stop_dict["stop_id"],
         "name": stop_dict["stop_name"],
-        "municipality": stop_dict["municipality"],
         "location": (float(stop_dict["stop_lat"]), float(stop_dict["stop_lon"])),
         "wheelchair_boarding": stop_dict["wheelchair_boarding"],
-        "on_street": stop_dict["on_street"],
-        "at_street": stop_dict["at_street"],
-        "vehicle_type": stop_dict["vehicle_type"],
         "zone_id": stop_dict["zone_id"],
-        "level_id": stop_dict["level_id"],
         "location_type": stop_dict["location_type"],
     }
 
@@ -129,7 +101,6 @@ def link_trips(trip_dicts, services_by_id, shapes_by_id):
                 id=trip_dict["trip_id"],
                 service=matching_service,
                 route_id=trip_dict["route_id"],
-                route_pattern_id=trip_dict["route_pattern_id"],
                 direction_id=int(trip_dict["direction_id"]),
                 shape_id=trip_dict["shape_id"],
                 shape=shapes_by_id[trip_dict["shape_id"]],
@@ -169,54 +140,14 @@ def link_stops(stations_by_id, stop_dicts):
     return stops
 
 
-def link_transfers(stop, all_stops, transfer_dicts_for_from_stop_id):
-    for transfer_dict in transfer_dicts_for_from_stop_id:
-        assert transfer_dict["from_stop_id"] == stop.id
-        to_stop = next(
-            (
-                other_stop
-                for other_stop in all_stops
-                if other_stop.id == transfer_dict["to_stop_id"]
-            ),
-            None,
-        )
-        if to_stop:
-            transfer = Transfer(
-                from_stop=stop,
-                to_stop=to_stop,
-                min_walk_time=int(transfer_dict["min_walk_time"] or 0),
-                min_wheelchair_time=int(transfer_dict["min_wheelchair_time"] or 0),
-                min_transfer_time=int(transfer_dict["min_transfer_time"] or 0),
-                suggested_buffer_time=int(transfer_dict["suggested_buffer_time"] or 0),
-                wheelchair_transfer=transfer_dict["wheelchair_transfer"],
-            )
-            stop.add_transfer(transfer)
-
-
-def link_routes(route_dicts, route_pattern_dicts, lines_by_id):
+def link_routes(route_dicts):
     routes = []
     for route_dict in route_dicts:
         route_id = route_dict["route_id"]
         route = Route(
             id=route_id,
             long_name=route_dict["route_long_name"],
-            line=lines_by_id.get(route_dict["line_id"]),
         )
-        matching_route_patterns = [
-            route_pattern_dict
-            for route_pattern_dict in route_pattern_dicts
-            if route_pattern_dict["route_id"] == route_id
-        ]
-        for route_pattern_dict in matching_route_patterns:
-            route.route_patterns.append(
-                RoutePattern(
-                    id=route_pattern_dict["route_pattern_id"],
-                    route=route,
-                    direction=int(route_pattern_dict["direction_id"]),
-                    # TODO(ian): consider filling this in
-                    stops=[],
-                )
-            )
         routes.append(route)
     return index_by(routes, lambda r: r.id)
 
@@ -229,24 +160,19 @@ def ensure_trips_are_sorted(trips_by_id):
 def build_network_from_gtfs(loader: GtfsLoader):
     # Do the loading...
     calendar_dicts = loader.load_calendar()
-    calendar_attribute_dicts = loader.load_calendar_attributes()
     calendar_date_dicts = loader.load_calendar_dates()
     stop_dicts = loader.load_stops()
     stop_time_dicts = loader.load_stop_times()
-    transfer_dicts = loader.load_transfers()
     trip_dicts = loader.load_trips()
     route_dicts = loader.load_routes()
-    route_pattern_dicts = loader.load_route_patterns()
-    line_dicts = loader.load_lines()
     shapes = loader.load_shapes()
     print("Loaded entities")
     # Now do the linking...
     station_dicts = get_stations_from_stops(stop_dicts)
     print("Linking services...")
-    services_by_id = link_services(calendar_dicts, calendar_attribute_dicts, calendar_date_dicts)
+    services_by_id = link_services(calendar_dicts, calendar_date_dicts)
     print("Linking routes...")
-    lines_by_id = get_lines_by_id(line_dicts)
-    routes_by_id = link_routes(route_dicts, route_pattern_dicts, lines_by_id)
+    routes_by_id = link_routes(route_dicts)
     print("Linking trips...")
     shapes_by_id = get_shapes_by_id(shapes)
     trips_by_id = link_trips(trip_dicts, services_by_id, shapes_by_id)
@@ -255,19 +181,11 @@ def build_network_from_gtfs(loader: GtfsLoader):
     print("Linking stops...")
     stops = link_stops(stations_by_id, stop_dicts)
     stop_time_dicts_by_stop_id = bucket_by(stop_time_dicts, "stop_id")
-    transfer_dicts_by_from_stop_id = bucket_by(transfer_dicts, "from_stop_id")
     print("Linking stop times...")
     for stop in stops:
         stop_times_for_id = stop_time_dicts_by_stop_id.get(stop.id)
         if stop_times_for_id and len(stop_times_for_id) > 0:
-            # print(f"...for {stop.name} ({len(stop_times_for_id)})")
             link_stop_times(stop, stop_times_for_id, trips_by_id)
-    # print("Linking transfers...")
-    # for stop in stops:
-    #     transfers_for_id = transfer_dicts_by_from_stop_id.get(stop.id)
-    #     if transfers_for_id and len(transfers_for_id) > 0:
-    #         # print(f"...for {stop.name} ({len(transfers_for_id)})")
-    #         link_transfers(stop, stops, transfers_for_id)
     print("Sorting trips...")
     ensure_trips_are_sorted(trips_by_id)
     return Network(
@@ -276,5 +194,4 @@ def build_network_from_gtfs(loader: GtfsLoader):
         shapes_by_id=shapes_by_id,
         routes_by_id=routes_by_id,
         services_by_id=services_by_id,
-        lines_by_id=lines_by_id,
     )

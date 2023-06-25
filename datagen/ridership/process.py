@@ -7,7 +7,7 @@ from typing import Dict, Union
 from pandas.tseries.holiday import USFederalHolidayCalendar
 
 from config import PRE_COVID_DATE
-from ridership.source import RidershipSource
+# from ridership.source import RidershipSource
 
 
 unofficial_bus_labels_map = {
@@ -186,21 +186,21 @@ def format_bus_data(path_to_excel_file: str):
     return output
 
 
-def generate_ridership_json(source: RidershipSource):
-    subway = format_subway_data(source.subway_ridership_csv_path)
-    bus = format_bus_data(source.bus_ridership_xlsx_path)
-    cr = format_cr_data(
-        source.cr_ridership_csv_path,
-        source.cr_seasonal_ridership_csv_path,
-    )
-    return {**subway, **bus, **cr}
+# def generate_ridership_json(source: RidershipSource):
+#     subway = format_subway_data(source.subway_ridership_csv_path)
+#     bus = format_bus_data(source.bus_ridership_xlsx_path)
+#     cr = format_cr_data(
+#         source.cr_ridership_csv_path,
+#         source.cr_seasonal_ridership_csv_path,
+#     )
+#     return {**subway, **bus, **cr}
 
 
-def get_ridership_json(source: RidershipSource):
-    target_path = source.ridership_json_path
-    if not path.exists(target_path):
-        data_dict = generate_ridership_json(source)
-        with open(target_path, "w") as file:
-            file.write(json.dumps(data_dict))
-    with open(target_path, "r") as file:
-        return json.loads(file.read())
+# def get_ridership_json(source: RidershipSource):
+#     target_path = source.ridership_json_path
+#     if not path.exists(target_path):
+#         data_dict = generate_ridership_json(source)
+#         with open(target_path, "w") as file:
+#             file.write(json.dumps(data_dict))
+#     with open(target_path, "r") as file:
+#         return json.loads(file.read())
