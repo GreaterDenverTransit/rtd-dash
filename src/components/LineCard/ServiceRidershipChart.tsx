@@ -3,14 +3,11 @@ import Chart, { ChartDataSets } from "chart.js";
 import Color from "chartjs-color";
 import pattern from "patternomaly";
 import memoize from "fast-memoize";
-
 import { LineData } from "types";
-import { DataTable } from "components";
-
 import styles from "./LineCard.module.scss";
 
 type Props = {
-    ridershipHistory: LineData["ridershipHistory"];
+    rtd_ridership: object;
     serviceHistory: LineData["serviceHistory"];
     color: string;
     startDate: Date;
@@ -19,13 +16,6 @@ type Props = {
 };
 
 const dateFormatter = new Intl.DateTimeFormat("en-US");
-
-const getRidershipNoun = (lineId: string) => {
-    if (["line-Red", "line-Orange", "line-Blue", "line-Green"].includes(lineId)) {
-        return "faregate validations";
-    }
-    return "riders";
-};
 
 const normalizeToPercent = (timeSeries: number[]) => {
     const firstValue = timeSeries[0];
@@ -51,52 +41,44 @@ export const getChartLabels = memoize(
 );
 
 const ServiceRidershipChart = (props: Props) => {
-    const { color, serviceHistory, ridershipHistory, startDate, lineTitle, lineId } = props;
+    const { color, serviceHistory, startDate, lineTitle, lineId, rtd_ridership } = props;
     const canvasRef = useRef<null | HTMLCanvasElement>(null);
 
-    const ridershipPercentage = useMemo(
-        () => ridershipHistory && normalizeToPercent(ridershipHistory),
-        [ridershipHistory]
-    );
+    const line_name = lineTitle.split(",")[0].trim();
+    let ridership = rtd_ridership[line_name];
+    let peak_value;
+    if (ridership !== undefined) {
+        peak_value = ridership.reduce((a, b) => (a.riders > b.riders ? a : b)).riders;
+
+        ridership = ridership.map((item) => ({
+            x: item.date,
+            y: item.riders ? item.riders / peak_value : "NaN",
+        }));
+    }
+
+    // const ridershipPercentage = useMemo(
+    //     () => ridershipHistory && normalizeToPercent(ridershipHistory),
+    //     [ridershipHistory]
+    // );
     const servicePercentage = useMemo(
         () => serviceHistory && normalizeToPercent(serviceHistory),
         [serviceHistory]
     );
     const { timestamps, dateStrings } = useMemo(() => getChartLabels(startDate), [startDate]);
-    const columns = useMemo(() => {
-        const ridershipNoun = getRidershipNoun(lineId);
-        return [
-            { title: "Date", values: dateStrings },
-            ridershipHistory && {
-                title: `Ridership (${ridershipNoun}/day)`,
-                values: ridershipHistory,
-            },
-            ridershipPercentage && {
-                title: "Ridership (percentage)",
-                values: ridershipPercentage.map(asPercentString),
-            },
-            serviceHistory && { title: "Service levels (trips/day)", values: serviceHistory },
-            servicePercentage && {
-                title: "Service levels (percentage)",
-                values: servicePercentage.map(asPercentString),
-            },
-        ].filter((x) => x);
-    }, [dateStrings, ridershipHistory, ridershipPercentage, serviceHistory, servicePercentage]);
-
     useEffect(() => {
         const alphaColor = Color(color).alpha(0.8).rgbString();
         const ctx = canvasRef.current!.getContext("2d");
-        const ridershipNoun = getRidershipNoun(lineId);
 
         const datasets: (ChartDataSets & { actual: number[]; unit: string })[] = [
-            ridershipPercentage && {
+            ridership && {
                 label: "Ridership",
-                actual: ridershipHistory,
-                unit: `weekday ${ridershipNoun}`,
-                data: ridershipPercentage,
+                // actual: ridership.map((item) => item.riders),
+                unit: "monthly riders",
+                data: ridership,
                 borderColor: color,
                 backgroundColor: alphaColor,
                 borderWidth: 2,
+                spanGaps: false,
             },
             {
                 label: "Service levels",
@@ -122,6 +104,9 @@ const ServiceRidershipChart = (props: Props) => {
                         {
                             gridLines: { display: false },
                             type: "time",
+                            ticks: {
+                                min: "2019-01-01",
+                            },
                             time: {
                                 unit: "month",
                                 displayFormats: {
@@ -156,26 +141,25 @@ const ServiceRidershipChart = (props: Props) => {
                 tooltips: {
                     mode: "index",
                     intersect: false,
-                    callbacks: {
-                        title: ([{ index }]) => {
-                            return dateFormatter.format(timestamps[index]);
-                        },
-                        label: ({ datasetIndex, index, value }) => {
-                            const { label, actual, unit } = datasets[datasetIndex];
-                            const valuePercent = Math.round(parseFloat(value) * 100);
-                            return `${label}: ${actual[index]} ${unit} (${valuePercent}%)`;
-                        },
-                    },
+                    // callbacks: {
+                    //     title: ([{ index }]) => {
+                    //         return dateFormatter.format(timestamps[index]);
+                    //     },
+                    //     label: ({ datasetIndex, index, value }) => {
+                    //         const { label, unit } = datasets[datasetIndex];
+                    //         const valuePercent = Math.round(parseFloat(value) * 100);
+                    //         return `${label}: ${unit} (${valuePercent}%)`;
+                    //     },
+                    // },
                 },
             },
         });
         return () => chart.destroy();
-    }, [ridershipPercentage, servicePercentage, lineId]);
+    }, [ridership, servicePercentage, lineId]);
 
     return (
         <div className={styles.serviceAndRidershipChartContainer}>
             <canvas className={styles.serviceAndRidershipChart} ref={canvasRef} />
-            <DataTable columns={columns} caption={`Service levels and ridership (${lineTitle})`} />
         </div>
     );
 };

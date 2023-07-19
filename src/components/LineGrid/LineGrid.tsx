@@ -11,6 +11,7 @@ import { sortFunctions, Sort, SortFn } from "./sorting";
 import styles from "./LineGrid.module.scss";
 
 type Props = {
+    rtd_ridership: object;
     lineData: Record<string, LineData>;
     summaryData: SummaryData;
     filter?: (r: LineData) => boolean;
@@ -62,7 +63,7 @@ const matchesLineKindOption = (lineData: LineData, option: LineKindOption) => {
 };
 
 const LineGrid = (props: Props) => {
-    const { lineData: lineData, summaryData, filter = defaultFilter } = props;
+    const { lineData: lineData, summaryData, rtd_ridership, filter = defaultFilter } = props;
     const [limit, setLimit] = useState(pagination);
     const [query, setQuery] = useState("");
     const [sort, setSort] = useState<Sort | "">("");
@@ -184,7 +185,7 @@ const LineGrid = (props: Props) => {
             </div>
             <div className={classNames(styles.lineGrid, display)}>
                 {shownItems.map((item) => (
-                    <LineCard lineData={item} key={item.id} />
+                    <LineCard lineData={item} key={item.id} rtd_ridership={rtd_ridership} />
                 ))}
             </div>
         </>

@@ -17,10 +17,14 @@ type Props = {
 };
 
 const PATH_TO_DATA = path.join(process.cwd(), "data.json");
+const RIDERSHIP_PATH = path.join(process.cwd(), "datagen/rtd/ridership/.data/ridership.json");
 
 export async function getStaticProps() {
     const dataContents = fs.readFileSync(PATH_TO_DATA).toString();
     const data = JSON.parse(dataContents);
+
+    const ridership = JSON.parse(fs.readFileSync(RIDERSHIP_PATH).toString());
+    data.rtd_ridership = ridership;
     return {
         props: { data },
     };

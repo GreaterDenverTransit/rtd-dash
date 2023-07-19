@@ -1,4 +1,3 @@
-export { default as DataTable } from "./DataTable";
 export { default as LineCard } from "./LineCard";
 export { default as LineGrid } from "./LineGrid";
 export { default as SystemCard } from "./SystemCard";

@@ -13,6 +13,7 @@ import styles from "./LineCard.module.scss";
 
 type Props = {
     lineData: LineData;
+    rtd_ridership: object;
 };
 
 const serviceDayItems = [
@@ -36,10 +37,9 @@ const getHighestTphValue = (lineData: LineData) => {
 };
 
 const LineCard = (props: Props) => {
-    const { lineData } = props;
+    const { lineData, rtd_ridership } = props;
     const {
         id,
-        ridershipHistory,
         lineKind,
         serviceHistory,
         serviceRegimes,
@@ -54,9 +54,9 @@ const LineCard = (props: Props) => {
     const startDate = useMemo(() => new Date(startDateString), [startDateString]);
     const title = shortName || longName;
 
-    const ridershipAndFrequencyLabel = ridershipHistory
-        ? "Weekday ridership and service levels"
-        : "Weekday service levels (ridership not available)";
+    const ridershipAndFrequencyLabel = rtd_ridership[shortName]
+        ? "Service and ridership over time"
+        : "Service over time (ridership not available)";
 
     const renderSectionLabel = (title: string, rightElement: React.ReactNode = null) => {
         return (
@@ -103,7 +103,7 @@ const LineCard = (props: Props) => {
 
     return (
         <CardFrame title={title} topRight={renderStatusBadge()} details={renderDetails()}>
-            {renderSectionLabel("Daily service levels", tabs)}
+            {renderSectionLabel("Service per hour", tabs)}
             <TphChart
                 lineTitle={`${title}, ${serviceDay}`}
                 baselineTph={serviceRegimes.baseline[serviceDay].tripsPerHour}
@@ -116,9 +116,9 @@ const LineCard = (props: Props) => {
                 lineId={lineData.id}
                 lineTitle={`${title}, ${serviceDay}`}
                 startDate={startDate}
-                ridershipHistory={ridershipHistory}
                 serviceHistory={serviceHistory}
                 color={color}
+                rtd_ridership={rtd_ridership}
             />
         </CardFrame>
     );
