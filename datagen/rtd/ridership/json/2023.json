@@ -2,51 +2,61 @@
   "D": {
     "January": 194,
     "February": 195,
-    "March": 222
+    "March": 222,
+    "April": 211
   },
   "E": {
     "January": 284,
     "February": 280,
-    "March": 323
+    "March": 323,
+    "April": 318
   },
   "H": {
     "January": 205,
     "February": 204,
-    "March": 233
+    "March": 233,
+    "April": 242
   },
   "L": {
     "January": 26,
     "February": 31,
-    "March": 38
+    "March": 38,
+    "April": 36
   },
   "R": {
     "January": 79,
     "February": 78,
-    "March": 94
+    "March": 94,
+    "April": 44
   },
   "W": {
     "January": 210,
     "February": 203,
-    "March": 243
+    "March": 243,
+    "April": 221
   },
   "A": {
     "January": 433,
     "February": 402,
-    "March": 452
+    "March": 452,
+    "April": 437
   },
   "B": {
     "January": 10,
     "February": 10,
-    "March": 11
+    "March": 11,
+    "April": 13
   },
   "G": {
     "January": 73,
     "February": 70,
-    "March": 80
+    "March": 80,
+    "April": 84
   },
   "N": {
     "January": 86,
     "February": 74,
-    "March": 85
+    "March": 85,
+    "April": 88
   }
 }
