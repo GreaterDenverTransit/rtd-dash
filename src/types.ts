@@ -33,7 +33,7 @@ export type LineData = {
     totalTrips: number;
     serviceFraction: number;
     routeId: string;
-    ridershipHistory: null | number[];
+    // ridershipHistory: null | number[];
     serviceHistory: number[];
     lineKind: LineKind;
     serviceRegimes: Record<ServiceRegime, Record<ServiceDay, ServiceLevels>>;
@@ -41,7 +41,7 @@ export type LineData = {
 };
 
 export type SummaryData = {
-    totalRidershipHistory: null | number[];
+    // totalRidershipHistory: null | number[];
     totalServiceHistory: null | number[];
     totalRidershipPercentage: number;
     totalServicePercentage: number;

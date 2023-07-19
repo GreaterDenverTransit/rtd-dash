@@ -64,7 +64,7 @@ const ServiceRidershipChart = (props: Props) => {
         () => serviceHistory && normalizeToPercent(serviceHistory),
         [serviceHistory]
     );
-    const { timestamps, dateStrings } = useMemo(() => getChartLabels(startDate), [startDate]);
+    const { timestamps } = useMemo(() => getChartLabels(startDate), [startDate]);
     useEffect(() => {
         const alphaColor = Color(color).alpha(0.8).rgbString();
         const ctx = canvasRef.current!.getContext("2d");
@@ -72,7 +72,7 @@ const ServiceRidershipChart = (props: Props) => {
         const datasets: (ChartDataSets & { actual: number[]; unit: string })[] = [
             ridership && {
                 label: "Ridership",
-                // actual: ridership.map((item) => item.riders),
+                actual: ridership.map((item) => item.riders),
                 unit: "monthly riders",
                 data: ridership,
                 borderColor: color,

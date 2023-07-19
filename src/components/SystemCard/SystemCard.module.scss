@@ -1,9 +1,0 @@
-// TODO: Dedupe from LineCard
-@import '../../styles/base.scss';
-
-.systemCard {
-    margin: 20px;
-    @include mobile {
-        margin: 0;
-    }
-}

@@ -40,7 +40,7 @@ const App = (props: Props) => {
                 <meta name="description" content="Data on RTD ridership and service levels" />
                 <link rel="icon" type="image/png" href="./favicon.png" />
             </Head>
-            <LineGrid {...data} />
+            <LineGrid rtd_ridership={undefined} {...data} />
         </>
     );
 };

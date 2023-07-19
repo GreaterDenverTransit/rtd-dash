@@ -126,10 +126,10 @@ const LineGrid = (props: Props) => {
                 <option value="lowestServiceFraction">Most service cut</option>
                 <option value="lowestTotalTrips">Least service</option>
                 <option value="highestTotalTrips">Most service</option>
-                <option value="lowestRidershipFraction">Least ridership retained</option>
+                {/* <option value="lowestRidershipFraction">Least ridership retained</option>
                 <option value="highestRidershipFraction">Most ridership retained</option>
                 <option value="lowestTotalRidership">Least ridership</option>
-                <option value="highestTotalRidership">Most ridership</option>
+                <option value="highestTotalRidership">Most ridership</option> */}
             </select>
         );
     };

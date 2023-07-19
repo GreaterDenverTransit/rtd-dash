@@ -27,7 +27,7 @@ const kind = (line: LineData) => {
     return res;
 };
 
-const isCancelled = (r: LineData) => r.serviceRegimes.current.weekday.cancelled;
+// const isCancelled = (r: LineData) => r.serviceRegimes.current.weekday.cancelled;
 
 const lowestServiceFraction = (r: LineData) => r.serviceFraction;
 const highestServiceFraction = (r: LineData) => -r.serviceFraction;
@@ -35,37 +35,37 @@ const highestServiceFraction = (r: LineData) => -r.serviceFraction;
 const lowestTotalTrips = (r: LineData) => r.totalTrips;
 const highestTotalTrips = (r: LineData) => -r.totalTrips;
 
-const highestRidershipFraction = (r: LineData) => {
-    const { ridershipHistory } = r;
-    if (ridershipHistory && !isCancelled(r)) {
-        return ridershipHistory[0] / ridershipHistory[ridershipHistory.length - 1];
-    }
-    return Infinity;
-};
+// const highestRidershipFraction = (r: LineData) => {
+//     const { ridershipHistory } = r;
+//     if (ridershipHistory && !isCancelled(r)) {
+//         return ridershipHistory[0] / ridershipHistory[ridershipHistory.length - 1];
+//     }
+//     return Infinity;
+// };
 
-const lowestRidershipFraction = (r: LineData) => {
-    const { ridershipHistory } = r;
-    if (ridershipHistory && !isCancelled(r)) {
-        return -highestRidershipFraction(r);
-    }
-    return Infinity;
-};
+// const lowestRidershipFraction = (r: LineData) => {
+//     const { ridershipHistory } = r;
+//     if (ridershipHistory && !isCancelled(r)) {
+//         return -highestRidershipFraction(r);
+//     }
+//     return Infinity;
+// };
 
-const lowestTotalRidership = (r: LineData) => {
-    const { ridershipHistory } = r;
-    if (ridershipHistory && !isCancelled(r)) {
-        return ridershipHistory[ridershipHistory.length - 1];
-    }
-    return Infinity;
-};
+// const lowestTotalRidership = (r: LineData) => {
+//     const { ridershipHistory } = r;
+//     if (ridershipHistory && !isCancelled(r)) {
+//         return ridershipHistory[ridershipHistory.length - 1];
+//     }
+//     return Infinity;
+// };
 
-const highestTotalRidership = (r: LineData) => {
-    const { ridershipHistory } = r;
-    if (ridershipHistory && !isCancelled(r)) {
-        return -lowestTotalRidership(r);
-    }
-    return Infinity;
-};
+// const highestTotalRidership = (r: LineData) => {
+//     const { ridershipHistory } = r;
+//     if (ridershipHistory && !isCancelled(r)) {
+//         return -lowestTotalRidership(r);
+//     }
+//     return Infinity;
+// };
 
 export const sortFunctions = {
     kind,
@@ -73,10 +73,10 @@ export const sortFunctions = {
     highestServiceFraction,
     lowestTotalTrips,
     highestTotalTrips,
-    lowestRidershipFraction,
-    highestRidershipFraction,
-    lowestTotalRidership,
-    highestTotalRidership,
+    // lowestRidershipFraction,
+    // highestRidershipFraction,
+    // lowestTotalRidership,
+    // highestTotalRidership,
 };
 
 export type SortFn = (r: LineData) => number;
