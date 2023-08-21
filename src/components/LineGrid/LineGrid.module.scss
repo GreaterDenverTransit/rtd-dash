@@ -78,6 +78,9 @@
     > *:not(:last-child)::after {
         content: '|';
         margin: 0 10px;
+        @include mobile {
+            visibility: hidden;
+        }
     }
     @include mobile {
         margin: 0;

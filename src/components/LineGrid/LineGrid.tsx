@@ -154,20 +154,12 @@ const LineGrid = (props: Props) => {
                     <Image
                         src="/gdt.png"
                         className={styles.logo}
-                        height={20}
-                        width={20}
-                        alt={"Greater Denver Transit Logo"}
+                        height={80}
+                        width={144}
+                        alt={"Greater Denver Transit logo"}
                     />
                 </a>
                 <h1>RTD Service & Ridership Tracker</h1>
-                <div className={styles.links}>
-                    <span>Data through {summaryData.endDate}</span>
-                    <a href="https://www.greaterdenvertransit.com/">Greater Denver Transit</a>
-                    <a href="https://github.com/mathcolo/rtd-dash">Source code</a>
-                    <a href="mailto:greaterdenvertransit@gmail.com?subject=Dashboard Feedback">
-                        Send feedback
-                    </a>
-                </div>
             </div>
             <div className={styles.controls}>
                 <input
@@ -182,6 +174,14 @@ const LineGrid = (props: Props) => {
                 {renderDisplayDropdown()}
                 {renderLineKindDropdown()}
                 {renderSortDropdown()}
+                <div className={styles.links}>
+                    <span>Data through {summaryData.endDate}</span>
+                    <a href="https://www.greaterdenvertransit.com/">Greater Denver Transit</a>
+                    <a href="https://github.com/GreaterDenverTransit/rtd-dash">Source code</a>
+                    <a href="mailto:greaterdenvertransit@gmail.com?subject=Dashboard Feedback">
+                        Send feedback
+                    </a>
+                </div>
             </div>
             <div className={classNames(styles.lineGrid, display)}>
                 {shownItems.map((item) => (
