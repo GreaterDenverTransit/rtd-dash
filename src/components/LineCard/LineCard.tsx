@@ -101,8 +101,10 @@ const LineCard = (props: Props) => {
         />
     );
 
+    const frameTitle = lineKind !== "bus" ? `${title} Line` : title;
+
     return (
-        <CardFrame title={title} topRight={renderStatusBadge()} details={renderDetails()}>
+        <CardFrame title={frameTitle} topRight={renderStatusBadge()} details={renderDetails()}>
             {renderSectionLabel("Service per hour", tabs)}
             <TphChart
                 lineTitle={`${title}, ${serviceDay}`}
