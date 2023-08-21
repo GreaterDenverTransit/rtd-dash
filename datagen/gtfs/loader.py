@@ -2,6 +2,9 @@ from csv import DictReader
 from os import path
 from tqdm import tqdm
 
+ROUTE_ID_MAP = {
+    "117N_merged_113656131": "117N"
+}
 
 class GtfsLoader:
     def _loader_by_file_name(self, name: str):
@@ -13,6 +16,11 @@ class GtfsLoader:
                 print(f"Reading {file_path}...")
                 dict_reader = DictReader(file)
                 for row in dict_reader:
+                    try:
+                        if row["route_id"] in ROUTE_ID_MAP:
+                            row["route_id"] = ROUTE_ID_MAP[row["route_id"]]
+                    except KeyError:
+                        pass
                     res.append(row)
             return res
 

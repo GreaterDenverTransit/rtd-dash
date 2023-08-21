@@ -18,8 +18,9 @@ type Props = {
 const dateFormatter = new Intl.DateTimeFormat("en-US");
 
 const normalizeToPercent = (timeSeries: number[]) => {
-    const firstValue = timeSeries[0];
-    return timeSeries.map((n) => n / firstValue);
+    // const firstValue = timeSeries[0];
+    const max = Math.max(...timeSeries);
+    return timeSeries.map((n) => Math.round((n / max) * 10) / 10);
 };
 
 const asPercentString = (p: number) => Math.round(100 * p).toString() + "%";
@@ -105,7 +106,7 @@ const ServiceRidershipChart = (props: Props) => {
                             gridLines: { display: false },
                             type: "time",
                             ticks: {
-                                min: "2019-01-01",
+                                min: "2019-10-15",
                             },
                             time: {
                                 unit: "month",

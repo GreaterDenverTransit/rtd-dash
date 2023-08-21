@@ -3,17 +3,43 @@ from os import path
 from pytz import timezone
 
 # Lower bound for time series and GTFS feeds
-EARLIEST_DATE = date(2014, 1, 1)
+EARLIEST_DATE = date(2019, 4, 28)
 
 # Date to use as a baseline
-PRE_COVID_DATE = date(2020, 2, 24)
+PRE_COVID_DATE = date(2019, 10, 15)
 
 TIME_ZONE = timezone("US/Eastern")
 
 # Should point to data.json in the root of the repo
 OUTPUT_FILE = path.normpath(path.join(path.dirname(__file__), "..", "data.json"))
 
-IGNORE_ROUTE_ID = lambda id: "merged" in id
+
+ROUTE_ID_MAP = {
+    "117N_merged_113656131": "117N"
+}
+IGNORE_ROUTE_ID = lambda id: "merged" in id or id in {
+    "120E",
+    "120L",
+    "17",
+    "206S",
+    "228A",
+    "228F",
+    "31L",
+    "49",
+    "50",
+    "520",
+    "55L",
+    "61AV",
+    "7",
+    "72L",
+    "AB",
+    "ATA",
+    "LD3",
+    "NB1",
+    "NB2",
+    "NB3",
+    "STMP",
+}
 ROUTE_IDS_RAIL = ["A", "113B", "C", "101D", "101E", "F", "113G", "101H", "109L", "117N", "107R", "120W"]
 
 GTFS_BUNDLE_DIR = path.join(path.dirname(__file__), "rtd", "bundles")

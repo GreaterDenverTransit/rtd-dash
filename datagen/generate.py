@@ -292,7 +292,6 @@ def generate_total_data(
         "endDate": end_date.strftime("%Y-%m-%d"),
     }
 
-
 def generate_data_file():
     start_date = PRE_COVID_DATE
     today = CUTOFF_DATE or datetime.now(TIME_ZONE).date()
