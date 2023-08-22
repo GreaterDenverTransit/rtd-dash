@@ -3,60 +3,80 @@
     "January": 194,
     "February": 195,
     "March": 222,
-    "April": 211
+    "April": 211,
+    "May": 236,
+    "June": 228
   },
   "E": {
     "January": 284,
     "February": 280,
     "March": 323,
-    "April": 318
+    "April": 318,
+    "May": 290,
+    "June": 282
   },
   "H": {
     "January": 205,
     "February": 204,
     "March": 233,
-    "April": 242
+    "April": 242,
+    "May": 246,
+    "June": 165
   },
   "L": {
     "January": 26,
     "February": 31,
     "March": 38,
-    "April": 36
+    "April": 36,
+    "May": 33,
+    "June": 30
   },
   "R": {
     "January": 79,
     "February": 78,
     "March": 94,
-    "April": 44
+    "April": 44,
+    "May": 44,
+    "June": 88
   },
   "W": {
     "January": 210,
     "February": 203,
     "March": 243,
-    "April": 221
+    "April": 221,
+    "May": 252,
+    "June": 267
   },
   "A": {
     "January": 433,
     "February": 402,
     "March": 452,
-    "April": 437
+    "April": 437,
+    "May": 522,
+    "June": 538
   },
   "B": {
     "January": 10,
     "February": 10,
     "March": 11,
-    "April": 13
+    "April": 13,
+    "May": 13,
+    "June": 17
   },
   "G": {
     "January": 73,
     "February": 70,
     "March": 80,
-    "April": 84
+    "April": 84,
+    "May": 90,
+    "June": 100
   },
   "N": {
     "January": 86,
     "February": 74,
     "March": 85,
-    "April": 88
+    "April": 88,
+    "May": 90,
+    "June": 103
   }
 }

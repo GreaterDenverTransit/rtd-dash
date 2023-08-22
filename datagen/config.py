@@ -58,7 +58,7 @@ SKIP_BUNDLES = [
 # rather than attempting to fetch later data from the MassDOT Box endpoint.
 # RIDERSHIP_TARGET_DATE = None
 
-CUTOFF_DATE = date(2023, 5, 1)
+CUTOFF_DATE = date(2023, 6, 15)
 
 # Date ranges with service gaps that we paper over because of major holidays rather than doing
 # more complicated special-casing with GTFS services
