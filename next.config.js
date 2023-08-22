@@ -5,4 +5,7 @@ module.exports = {
         unoptimized: true,
     },
     assetPrefix,
+    experimental: {
+        largePageDataBytes: 10000,
+    },
 };
